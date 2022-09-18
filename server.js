@@ -6,8 +6,8 @@ const MongoStore = require('connect-mongo')
 const { MONGO_URI } = require('./src/config/globals');
 
 const { TIEMPO_EXPIRACION } = require('./src/config/globals')
-const {validatePass} = require('./src/utils/passValidator');
-const {createHash} = require('./src/utils/hashGenerator')
+const { validatePass } = require('./src/utils/passValidator');
+const { createHash } = require('./src/utils/hashGenerator')
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -15,7 +15,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const advancedOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 const { PORT } = require('./src/config/globals')
 
-const app = express()
+const app = express();
 
 app.use(session({
     store: MongoStore.create({
@@ -39,7 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set('views', './src/views');
 app.set('view engine', 'pug');
 //public
-app.use(express.static('public'));
+app.use(express.static(__dirname + "/public"));
 
 app.use(passport.initialize())
 app.use(passport.session())
@@ -56,7 +56,7 @@ passport.use('login', new LocalStrategy(
                 return callback(null, false)
             }
 
-            if(!validatePass(user, password)) {
+            if (!validatePass(user, password)) {
                 return callback(null, false)
             }
 
@@ -67,7 +67,7 @@ passport.use('login', new LocalStrategy(
 
 
 passport.use('signup', new LocalStrategy(
-    {passReqToCallback: true}, (req, username, password, callback) => {
+    { passReqToCallback: true }, (req, username, password, callback) => {
         UserModel.findOne({ username: username }, (err, user) => {
             if (err) {
                 return callback(err)
@@ -118,12 +118,18 @@ app.get('/failsignup', routes.getFailsignup);
 app.get('/logout', routes.getLogout);
 
 
-// PROFILE
+// PRODUCTS
 app.get('/productos', routes.checkAuthentication, routes.getProductos);
-
+app.get('/item/:id', routes.getItem);
+app.get('/nuevoProducto', routes.getIngresar);
+app.post('/nuevoProducto', routes.postItem);
+app.get('/delete/:id', routes.deleteItem);
+app.get('/update/:id', routes.getUpdate);
+app.post('/update', routes.postUpdate);
 
 //  FAIL ROUTE
 app.get('*', routes.failRoute);
+app.get('/item/*', routes.failRoute);
 
 app.listen(PORT, err => {
     if (err) throw new Error(`error en el sv ${err}`)

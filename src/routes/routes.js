@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------------------
 //  ROUTING
 // ------------------------------------------------------------------------------
-const productos = require('../utils/fakerProducts')
+const ProductModel = require('../models/productos');
 
 function getRoot(req, res) {
     res.render('main.pug')
@@ -20,7 +20,7 @@ function getSignup(req, res) {
     res.render('signup.pug');
 }
 
-function postLogin (req, res) {
+function postLogin(req, res) {
     if (req.isAuthenticated()) {
         let user = req.user.username;
         res.render('index.pug', { user: user })
@@ -29,7 +29,7 @@ function postLogin (req, res) {
     }
 }
 
-function postSignup (req, res) {
+function postSignup(req, res) {
     if (req.isAuthenticated()) {
         let user = req.user.username;
         res.render('index.pug', { user: user })
@@ -38,27 +38,100 @@ function postSignup (req, res) {
     }
 }
 
-function getFaillogin (req, res) {
+function getFaillogin(req, res) {
     res.render('login.pug', { error: true });
 }
 
-function getFailsignup (req, res) {
+function getFailsignup(req, res) {
     res.render('signup.pug', { error: true });
 }
 
 function getProductos(req, res) {
-    res.render('productos.pug', { productos: productos });
+    ProductModel.find({})
+        .then((data) => {
+            res.render('productos.pug', { productos: data });
+        })
+        .catch((err) => {
+            console.log(err)
+        })
 }
 
-function getLogout (req, res) {
-    req.logout( (err) => {
+function getItem(req, res) {
+    ProductModel.findById(req.params.id)
+        .then((data) => {
+            res.render('item.pug', { item: data });
+        })
+        .catch((err) => {
+            res.status(404).render('error.pug', {});
+        })
+}
+
+function postItem(req, res) {
+    const newItem = {
+        name: req.body.name,
+        price: req.body.price,
+        img: req.body.img,
+        description: req.body.description,
+        category: req.body.category
+    }
+    ProductModel.create(newItem, (err, itemWithID) => {
+        if (err) {
+            res.render('nuevoProducto.pug', { msg: 'Error al crear producto' })
+        }
+        res.render('nuevoProducto.pug', { msg: 'Producto cargado correctamente' })
+    })
+}
+
+function deleteItem(req, res) {
+    ProductModel.deleteOne({ _id: req.params.id })
+        .then(function () {
+            res.redirect('/productos')
+        })
+        .catch(function (error) {
+            res.redirect('/productos')
+        });
+}
+
+function getUpdate(req, res) {
+    ProductModel.findById(req.params.id)
+        .then((data) => {
+            res.render('actProducto.pug', { item: data });
+        })
+        .catch((err) => {
+            console.log(`el error es: ${err}`)
+        })
+}
+
+function postUpdate(req, res) {
+    const item = {
+        name: req.body.name,
+        price: req.body.price,
+        img: req.body.img,
+        description: req.body.description,
+        category: req.body.category
+    }
+    ProductModel.findOneAndUpdate({ _id: req.body.id }, item)
+        .then(function () {
+            res.redirect('/productos')
+        })
+        .catch(function (error) {
+            res.redirect('/productos')
+        });
+}
+
+function getIngresar(req, res) {
+    res.render('nuevoProducto.pug');
+}
+
+function getLogout(req, res) {
+    req.logout((err) => {
         if (!err) {
             res.render('main.pug');
-        } 
+        }
     });
 }
 
-function failRoute(req, res){
+function failRoute(req, res) {
     res.status(404).render('error.pug', {});
 }
 
@@ -81,6 +154,11 @@ module.exports = {
     postSignup,
     getFailsignup,
     checkAuthentication,
-    getProductos
+    getProductos,
+    getItem,
+    getIngresar,
+    postItem,
+    deleteItem,
+    getUpdate,
+    postUpdate
 }
-  
