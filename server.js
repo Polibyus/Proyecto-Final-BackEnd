@@ -4,7 +4,6 @@ const routes = require('./src/routes/routes')
 const UserModel = require('./src/models/usuarios');
 const MongoStore = require('connect-mongo')
 const { MONGO_URI } = require('./src/config/globals');
-
 const { TIEMPO_EXPIRACION } = require('./src/config/globals')
 const { validatePass } = require('./src/utils/passValidator');
 const { createHash } = require('./src/utils/hashGenerator')
@@ -59,7 +58,6 @@ passport.use('login', new LocalStrategy(
             if (!validatePass(user, password)) {
                 return callback(null, false)
             }
-
             return callback(null, user)
         })
     }
@@ -126,6 +124,11 @@ app.post('/nuevoProducto', routes.postItem);
 app.get('/delete/:id', routes.deleteItem);
 app.get('/update/:id', routes.getUpdate);
 app.post('/update', routes.postUpdate);
+
+// CHAT
+
+app.get('/chat', routes.getChat);
+app.post('/chat', routes.postChat);
 
 //  FAIL ROUTE
 app.get('*', routes.failRoute);

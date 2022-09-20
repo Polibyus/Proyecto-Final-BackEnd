@@ -2,6 +2,7 @@
 //  ROUTING
 // ------------------------------------------------------------------------------
 const ProductModel = require('../models/productos');
+const ChatModel = require('../models/chat');
 
 function getRoot(req, res) {
     res.render('main.pug')
@@ -10,6 +11,8 @@ function getRoot(req, res) {
 function getLogin(req, res) {
     if (req.isAuthenticated()) {
         let user = req.user.username;
+        sessionStorage.setItem("user", user);
+        console.log(localStorage.getItem('user'));
         res.render('index.pug', { user: user })
     } else {
         res.render('login.pug');
@@ -23,6 +26,8 @@ function getSignup(req, res) {
 function postLogin(req, res) {
     if (req.isAuthenticated()) {
         let user = req.user.username;
+        sessionStorage.setItem("user", user);
+        console.log(localStorage.getItem('user'));
         res.render('index.pug', { user: user })
     } else {
         res.redirect('login')
@@ -119,6 +124,30 @@ function postUpdate(req, res) {
         });
 }
 
+function getChat(req, res) {
+    ChatModel.find({})
+        .then((data) => {
+            console.log(data);
+            res.render('chat.pug', { mensajes: data });
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+}
+
+function postChat(req, res) {
+    console.log(localStorage.getItem('username'));
+    const newChat = {
+        nick: localStorage.getItem('username'),
+        mensaje: req.body.msg
+    }
+    ChatModel.create(newChat, (err, chatID) => {
+        if (err) {
+            console.log(err);
+        }
+    })
+}
+
 function getIngresar(req, res) {
     res.render('nuevoProducto.pug');
 }
@@ -160,5 +189,7 @@ module.exports = {
     postItem,
     deleteItem,
     getUpdate,
-    postUpdate
+    postUpdate,
+    getChat,
+    postChat
 }
