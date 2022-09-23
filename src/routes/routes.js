@@ -3,7 +3,6 @@
 // ------------------------------------------------------------------------------
 const ProductModel = require('../models/productos');
 const ChatModel = require('../models/chat');
-const io = require('socket.io');
 
 function getRoot(req, res) {
     res.render('main.pug')
@@ -123,15 +122,16 @@ function postUpdate(req, res) {
         });
 }
 
-function postChat(data) {
-    ChatModel.create(data, (err, chatID) => {
-        if (err) {
-            console.log(err);
-        }
-        res.redirect('/chat')
-    })
-    
+function getChat(req, res) {
+    ChatModel.find({})
+        .then((data) => {
+            res.render('chat.pug', { mensajes: data })
+        })
+        .catch((err) => {
+            console.log(err)
+        });
 }
+
 
 function getIngresar(req, res) {
     res.render('nuevoProducto.pug');
@@ -175,5 +175,5 @@ module.exports = {
     deleteItem,
     getUpdate,
     postUpdate,
-    postChat
+    getChat
 }

@@ -1,4 +1,5 @@
 const express = require('express')
+const cookie = require("cookie")
 const session = require('express-session')
 const routes = require('./src/routes/routes')
 const UserModel = require('./src/models/usuarios');
@@ -131,12 +132,11 @@ app.get('/update/:id', routes.getUpdate);
 app.post('/update', routes.postUpdate);
 
 // CHAT
-io.on('connection', () => {
-    console.log('a user is connected')
-    io.on('text', (data) => {
-        console.log(data);
+io.on('connection', (socket) => {
+    socket.on('text', (data) => {
+        const cookies = cookie.parse(socket.handshake.headers.cookie); 
         const newChat = {
-            nick: req.cookies.username,
+            nick: cookies.username,
             mensaje: data,
             date: new Date()
         }
@@ -144,22 +144,12 @@ io.on('connection', () => {
             if(err){
                 console.log(err);
             }
-            io.emit('message', newChat);
+            io.emit('message', chatID);
         })
     })
 })
 
-app.get('/chat', (req, res) => {
-    ChatModel.find({})
-        .then((data) => {
-            res.render('chat.pug', { mensajes: data })
-        })
-        .catch((err) => {
-            console.log(err)
-        });
-})
-
-
+app.get('/chat', routes.getChat);
 
 //  FAIL ROUTE
 app.get('*', routes.failRoute);
