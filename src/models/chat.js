@@ -8,7 +8,7 @@ const chatCollection = 'mensajes';
 
 const chatSchema = new mongoose.Schema({
     nick: {type: String, required: true, max: 100},
-    mensaje: {type: String, required: true, max: 1000}
-})
+    mensaje: {type: String, required: true, max: 1000},
+}, { timestamps: true });
 
 module.exports = mongoose.model(chatCollection, chatSchema)

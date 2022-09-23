@@ -28,7 +28,6 @@ body {
 .main-section {
   position: absolute;
   left: 50%;
-  right: 50%;
   transform: translate(-50%, 5%);
 }
 
@@ -75,8 +74,6 @@ body {
   display: flex;
   flex-flow: column wrap;
   justify-content: space-between;
-  width: 100%;
-  max-width: 867px;
   margin: 25px 10px;
   height: calc(80% - 50px);
   border: var(--border);

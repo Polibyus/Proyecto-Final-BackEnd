@@ -2,7 +2,11 @@ const express = require('express')
 const session = require('express-session')
 const routes = require('./src/routes/routes')
 const UserModel = require('./src/models/usuarios');
-const MongoStore = require('connect-mongo')
+const ChatModel = require('./src/models/chat');
+const MongoStore = require('connect-mongo');
+const cookieParser = require('cookie-parser');
+const { Server: HttpServer } = require('http')
+const { Server: IOServer } = require('socket.io')
 const { MONGO_URI } = require('./src/config/globals');
 const { TIEMPO_EXPIRACION } = require('./src/config/globals')
 const { validatePass } = require('./src/utils/passValidator');
@@ -15,6 +19,8 @@ const advancedOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 const { PORT } = require('./src/config/globals')
 
 const app = express();
+const httpServer = new HttpServer(app)
+const io = new IOServer(httpServer)
 
 app.use(session({
     store: MongoStore.create({
@@ -39,7 +45,7 @@ app.set('views', './src/views');
 app.set('view engine', 'pug');
 //public
 app.use(express.static(__dirname + "/public"));
-
+app.use(cookieParser());
 app.use(passport.initialize())
 app.use(passport.session())
 
@@ -115,7 +121,6 @@ app.get('/failsignup', routes.getFailsignup);
 //  LOGOUT
 app.get('/logout', routes.getLogout);
 
-
 // PRODUCTS
 app.get('/productos', routes.checkAuthentication, routes.getProductos);
 app.get('/item/:id', routes.getItem);
@@ -126,15 +131,41 @@ app.get('/update/:id', routes.getUpdate);
 app.post('/update', routes.postUpdate);
 
 // CHAT
+io.on('connection', () => {
+    console.log('a user is connected')
+    io.on('text', (data) => {
+        console.log(data);
+        const newChat = {
+            nick: req.cookies.username,
+            mensaje: data,
+            date: new Date()
+        }
+        ChatModel.create(newChat, (err, chatID) => {
+            if(err){
+                console.log(err);
+            }
+            io.emit('message', newChat);
+        })
+    })
+})
 
-app.get('/chat', routes.getChat);
-app.post('/chat', routes.postChat);
+app.get('/chat', (req, res) => {
+    ChatModel.find({})
+        .then((data) => {
+            res.render('chat.pug', { mensajes: data })
+        })
+        .catch((err) => {
+            console.log(err)
+        });
+})
+
+
 
 //  FAIL ROUTE
 app.get('*', routes.failRoute);
 app.get('/item/*', routes.failRoute);
 
-app.listen(PORT, err => {
+httpServer.listen(PORT, err => {
     if (err) throw new Error(`error en el sv ${err}`)
     console.log(`el sv escucha en ${PORT} en http://localhost:3000`);
 })
