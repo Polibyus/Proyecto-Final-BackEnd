@@ -32,22 +32,22 @@ function postLogin(req, res) {
     }
 }
 
-async function postSignup(req, res) {
+function postSignup(req, res) {
     if (req.isAuthenticated()) {
         res.cookie('username', req.user.username)
-        const mailOptions = {
-            from: 'Shop of Roll',
-            to: req.user.email,
-            subject: 'Se ha creado una cuenta en Shop of Roll',
-            html: `<h1>Bienvenido ${req.body.firstName} a Shop of roll</h1>
-            <p>Su usuario es: ${req.user.username}</p>
-            <p>Por favor, no pierda su contraseña y espero que disfrute comprar en nuestra pagina</p>`
-        }
-        try {
-            const info = await transporter.sendMail(mailOptions)
-        } catch (error) {
-            console.log(err)
-        }
+        // const mailOptions = {
+        //     from: 'Shop of Roll',
+        //     to: req.user.email,
+        //     subject: 'Se ha creado una cuenta en Shop of Roll',
+        //     html: `<h1>Bienvenido ${req.body.firstName} a Shop of roll</h1>
+        //     <p>Su usuario es: ${req.user.username}</p>
+        //     <p>Por favor, no pierda su contraseña y espero que disfrute comprar en nuestra pagina</p>`
+        // }
+        // try {
+        //     const info = await transporter.sendMail(mailOptions)
+        // } catch (error) {
+        //     console.log(err)
+        // }
         res.render('index.pug', { user: {username: req.user.username, mod: req.user.mod} })
     } else {
         res.redirect('login')
