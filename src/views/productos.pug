@@ -51,17 +51,17 @@ html(lang='es')
                             td=`$${p.price}`
                             td=p.description
                             td
-                                a(class="btn btn-primary rounded-0" type="button" data-toggle="tooltip" href=`http://localhost:3000/item/${p.id}` title="Ver mas")
+                                a(class="btn btn-primary rounded-0" type="button" data-toggle="tooltip" href=`/item/${p.id}` title="Ver mas")
                                     i(class="fa fa-plus")
                             td
-                                a(class="btn btn-success rounded-0" type="button" data-toggle="tooltip" href=`http://localhost:3000/addtocart/${p.id}`  title="Añadir")
+                                a(class="btn btn-success rounded-0" type="button" data-toggle="tooltip" href=`/addtocart/${p.id}`  title="Añadir")
                                     i(class="fa fa-shopping-cart")
                             if mod
                                 td
-                                    a(class="btn btn-warning rounded-0" type="button" data-toggle="tooltip" href=`http://localhost:3000/update/${p.id}` title="Editar")
+                                    a(class="btn btn-warning rounded-0" type="button" data-toggle="tooltip" href=`/update/${p.id}` title="Editar")
                                         i(class="fa fa-edit")
                                 td
-                                    a(class="btn btn-danger rounded-0" type="button" data-toggle="tooltip" href=`http://localhost:3000/delete/${p.id}` title="Eliminar")
+                                    a(class="btn btn-danger rounded-0" type="button" data-toggle="tooltip" href=`/delete/${p.id}` title="Eliminar")
                                         i(class="fa fa-trash")                         
         
     script(src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous")
