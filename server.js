@@ -1,28 +1,36 @@
-const express = require('express')
-const cookie = require("cookie")
-const session = require('express-session')
-const routes = require('./src/routes/routes')
-const UserModel = require('./src/models/usuarios');
-const ChatModel = require('./src/models/chat');
+// Dependencias
+const express = require('express');
+const cookie = require("cookie");
+const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
-const { Server: HttpServer } = require('http')
-const { Server: IOServer } = require('socket.io')
-const { MONGO_URI } = require('./src/config/globals');
-const { TIEMPO_EXPIRACION } = require('./src/config/globals')
-const { validatePass } = require('./src/utils/passValidator');
-const { createHash } = require('./src/utils/hashGenerator')
-
+const { Server: HttpServer } = require('http');
+const { Server: IOServer } = require('socket.io');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-
+// Config
+const { MONGO_URI } = require('./src/config/globals');
+const { TIEMPO_EXPIRACION } = require('./src/config/globals');
+const { PORT } = require('./src/config/globals');
+const { EMAIL_TEST } = require('./src/config/globals');
 const advancedOptions = { useNewUrlParser: true, useUnifiedTopology: true };
-const { PORT } = require('./src/config/globals')
-
+// Utils
+const { validatePass } = require('./src/utils/passValidator');
+const { createHash } = require('./src/utils/hashGenerator');
+// Rutas
+const cartRoutes = require('./src/routes/cartRoutes');
+const chatRoutes = require('./src/routes/chatRoutes');
+const indexRoutes = require('./src/routes/indexRoutes');
+const productRoutes = require('./src/routes/productRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+// Models
+const UserModel = require('./src/models/usuarios');
+const ChatModel = require('./src/models/chat');
+// App
 const app = express();
 const httpServer = new HttpServer(app)
 const io = new IOServer(httpServer)
-
+// Creacion de session
 app.use(session({
     store: MongoStore.create({
         mongoUrl: MONGO_URI,
@@ -38,19 +46,18 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }))
-
+// App config
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-//views
+// Views
 app.set('views', './src/views');
 app.set('view engine', 'pug');
-//public
+// Public
 app.use(express.static(__dirname + "/public"));
 app.use(cookieParser());
 app.use(passport.initialize())
 app.use(passport.session())
-
-
+// Passport login y signup
 passport.use('login', new LocalStrategy(
     (username, password, callback) => {
         UserModel.findOne({ username: username }, (err, user) => {
@@ -69,8 +76,6 @@ passport.use('login', new LocalStrategy(
         })
     }
 ))
-
-
 passport.use('signup', new LocalStrategy(
     { passReqToCallback: true }, (req, username, password, callback) => {
         UserModel.findOne({ username: username }, (err, user) => {
@@ -85,7 +90,8 @@ passport.use('signup', new LocalStrategy(
                 lastName: req.body.lastName,
                 email: req.body.email,
                 username: username,
-                password: createHash(password)
+                password: createHash(password),
+                mod: req.body.mod
             }
             UserModel.create(newUser, (err, userWithId) => {
                 if (err) {
@@ -96,66 +102,73 @@ passport.use('signup', new LocalStrategy(
         })
     }
 ))
-
 passport.serializeUser((user, callback) => {
     callback(null, user._id)
 })
-
 passport.deserializeUser((id, callback) => {
     UserModel.findById(id, callback)
 })
 
+// ------------------------------------------------------------------------------
+//  ROUTING
+// ------------------------------------------------------------------------------
 
 //  INDEX
-app.get('/', routes.getRoot);
-
+app.get('/', indexRoutes.getRoot);
+// ----------------------------------------USER----------------------------------
 //  LOGIN
-app.get('/login', routes.getLogin);
-app.post('/login', passport.authenticate('login', { failureRedirect: '/faillogin' }), routes.postLogin);
-app.get('/faillogin', routes.getFaillogin);
-
+app.get('/login', userRoutes.getLogin);
+app.post('/login', passport.authenticate('login', { failureRedirect: '/faillogin' }), userRoutes.postLogin);
+app.get('/faillogin', userRoutes.getFaillogin);
 //  SIGNUP
-app.get('/signup', routes.getSignup);
-app.post('/signup', passport.authenticate('signup', { failureRedirect: '/failsignup' }), routes.postSignup);
-app.get('/failsignup', routes.getFailsignup);
-
+app.get('/signup', userRoutes.getSignup);
+app.post('/signup', passport.authenticate('signup', { failureRedirect: '/failsignup' }), userRoutes.postSignup);
+app.get('/failsignup', userRoutes.getFailsignup);
 //  LOGOUT
-app.get('/logout', routes.getLogout);
-
+app.get('/logout', userRoutes.getLogout);
+// ------------------------------------------------------------------------------
 // PRODUCTS
-app.get('/productos', routes.checkAuthentication, routes.getProductos);
-app.get('/item/:id', routes.getItem);
-app.get('/nuevoProducto', routes.getIngresar);
-app.post('/nuevoProducto', routes.postItem);
-app.get('/delete/:id', routes.deleteItem);
-app.get('/update/:id', routes.getUpdate);
-app.post('/update', routes.postUpdate);
+app.get('/productos', indexRoutes.checkAuthentication, productRoutes.getProductos);
+app.get('/item/:id', indexRoutes.checkAuthentication, productRoutes.getItem);
+app.get('/nuevoProducto', indexRoutes.checkAuthentication, productRoutes.getIngresar);
+app.post('/nuevoProducto', indexRoutes.checkAuthentication, productRoutes.postItem);
+app.get('/delete/:id', indexRoutes.checkAuthentication, productRoutes.deleteItem);
+app.get('/update/:id', indexRoutes.checkAuthentication, productRoutes.getUpdate);
+app.post('/update', indexRoutes.checkAuthentication, productRoutes.postUpdate);
 
 // CHAT
 io.on('connection', (socket) => {
     socket.on('text', (data) => {
-        const cookies = cookie.parse(socket.handshake.headers.cookie); 
+        const cookies = cookie.parse(socket.handshake.headers.cookie);
         const newChat = {
             nick: cookies.username,
             mensaje: data,
             date: new Date()
         }
         ChatModel.create(newChat, (err, chatID) => {
-            if(err){
+            if (err) {
                 console.log(err);
             }
             io.emit('message', chatID);
         })
     })
 })
+app.get('/chat', indexRoutes.checkAuthentication, chatRoutes.getChat);
+app.get('/vaciarchat', indexRoutes.checkAuthentication, chatRoutes.vaciarChat)
 
-app.get('/chat', routes.getChat);
+// CART
+app.get('/addtocart/:id', cartRoutes.addToCart);
+app.get('/cart', cartRoutes.getCart);
+app.post('/checkout', cartRoutes.postCart);
+app.get('/deletefromcart/:id', cartRoutes.deleteFromCart);
+app.get('/reduceone/:id', cartRoutes.reduceOne);
 
-//  FAIL ROUTE
-app.get('*', routes.failRoute);
-app.get('/item/*', routes.failRoute);
+// ERROR
+app.get('*', indexRoutes.failRoute);
+app.get('/item/*', indexRoutes.failRoute);
 
+// Server escuchando
 httpServer.listen(PORT, err => {
     if (err) throw new Error(`error en el sv ${err}`)
-    console.log(`el sv escucha en ${PORT} en http://localhost:3000`);
+    console.log(`el sv escucha en ${PORT} en http://localhost:${PORT}`);
 })
