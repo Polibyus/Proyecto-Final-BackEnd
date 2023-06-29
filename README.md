@@ -24,7 +24,7 @@ En si esta bastante amigable la creacion de cuentas, lo cual permite decidir si 
 
 ## Link a Render donde se puede utilizar la app (actualizado junio 2023)
 
-[Shop of Roll]([https://proyecto-final-backend-xyxc.onrender.com])
+[Shop of Roll](https://proyecto-final-backend-xyxc.onrender.com)
 
 ## El sitio
 
