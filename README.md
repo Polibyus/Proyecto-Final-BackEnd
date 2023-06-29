@@ -22,9 +22,9 @@ En si esta bastante amigable la creacion de cuentas, lo cual permite decidir si 
 - La vista de productos en forma de lista podria ser mejorada.
 - El logo del carrito podria llevar un conteo de sus cantidades.
 
-## Link a Heroku donde se puede utilizar la app
+## Link a Render donde se puede utilizar la app (actualizado junio 2023)
 
-[Shop of Roll](https://shop-of-roll-renew.herokuapp.com/)
+[Shop of Roll]([https://shop-of-roll-renew.herokuapp.com/](https://proyecto-final-backend-xyxc.onrender.com))
 
 ## El sitio
 
